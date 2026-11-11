@@ -20,6 +20,7 @@ Represents a booked consultation or legal session against a specific availabilit
 Relevant fields:
 - `clientId`, `advocateId`: associated users
 - `availabilityId`: scheduled slot reference
+- `caseId`: optional link to a legal case or matter record; useful for document-processing and case-based workflows
 - `status`: the booking lifecycle state
 - `scheduledAt`, `endAt`: booking time range
 - `amount`, `currency`: fee information

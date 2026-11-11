@@ -25,6 +25,7 @@ CREATE TABLE "appointments" (
     "clientId" UUID NOT NULL,
     "advocateId" UUID NOT NULL,
     "availabilityId" UUID NOT NULL,
+    "caseId" UUID,
     "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -35,6 +36,19 @@ CREATE TABLE "appointments" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "appointments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "appointment_status_history" (
+    "id" UUID NOT NULL,
+    "appointmentId" UUID NOT NULL,
+    "fromStatus" "BookingStatus",
+    "toStatus" "BookingStatus" NOT NULL,
+    "actorUserId" UUID,
+    "actorType" TEXT NOT NULL DEFAULT 'SYSTEM',
+    "reason" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "appointment_status_history_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -64,6 +78,12 @@ ON "appointments"("advocateId", "scheduledAt");
 CREATE INDEX "appointments_clientId_status_idx"
 ON "appointments"("clientId", "status");
 
+CREATE INDEX "appointments_caseId_idx"
+ON "appointments"("caseId");
+
+CREATE INDEX "appointment_status_history_appointmentId_createdAt_idx"
+ON "appointment_status_history"("appointmentId", "createdAt");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "payments_appointmentId_key"
 ON "payments"("appointmentId");
@@ -91,6 +111,11 @@ FOREIGN KEY ("advocateId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE 
 ALTER TABLE "appointments"
 ADD CONSTRAINT "appointments_availabilityId_fkey"
 FOREIGN KEY ("availabilityId") REFERENCES "availabilities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "appointment_status_history"
+ADD CONSTRAINT "appointment_status_history_appointmentId_fkey"
+FOREIGN KEY ("appointmentId") REFERENCES "appointments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "payments"

@@ -44,6 +44,7 @@ Request body:
   "clientId": "<uuid>",
   "advocateId": "<uuid>",
   "availabilityId": "<uuid>",
+  "caseId": "<uuid>",
   "title": "Legal consultation",
   "description": "Employment law consultation",
   "scheduledAt": "2026-11-12T10:00:00.000Z",

@@ -78,6 +78,7 @@ model Appointment {
   clientId      String        @db.Uuid
   advocateId    String        @db.Uuid
   availabilityId String        @db.Uuid
+  caseId        String?       @db.Uuid
   status        BookingStatus @default(PENDING)
   title         String
   description   String?
@@ -92,10 +93,28 @@ model Appointment {
   advocate    User @relation("AdvocateAppointments", fields: [advocateId], references: [id], onDelete: Cascade)
   availability Availability @relation(fields: [availabilityId], references: [id], onDelete: Restrict)
   payment     Payment?
+  history     AppointmentStatusHistory[]
 
   @@index([advocateId, scheduledAt])
   @@index([clientId, status])
+  @@index([caseId])
   @@map("appointments")
+}
+
+model AppointmentStatusHistory {
+  id            String        @id @default(uuid()) @db.Uuid
+  appointmentId String        @db.Uuid
+  fromStatus    BookingStatus?
+  toStatus      BookingStatus
+  actorUserId   String?       @db.Uuid
+  actorType     String        @default("SYSTEM")
+  reason        String?
+  createdAt     DateTime      @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, createdAt])
+  @@map("appointment_status_history")
 }
 
 model Payment {
