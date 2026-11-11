@@ -25,6 +25,15 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Booking domain
+
+This project includes the initial booking domain schema for appointments, advocate availability, and payment tracking.
+
+- Prisma schema: `prisma/schema.prisma`
+- Migration: `prisma/migrations/20261111090000_add_booking_and_payment_schema/migration.sql`
+- State transitions: `docs/booking-state-transitions.md`
+- API contract reference: `docs/booking-api-contract.md`
+
 ## Project setup
 
 ```bash
