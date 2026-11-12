@@ -28,14 +28,15 @@ enum AccessLevel {
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  email     String   @unique
-  password  String
-  role      UserRole @default(CLIENT)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  email           String           @unique
+  password        String
+  role            UserRole         @default(CLIENT)
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  advocateProfile AdvocateProfile?
 
   // BE-04 back-relations
   casesAsClient   Case[]          @relation("ClientCases")
@@ -117,4 +118,51 @@ model CaseAccess {
 
   @@unique([caseId, userId])
   @@map("case_access")
+}
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model AdvocateProfile {
+  id                  String             @id @default(uuid()) @db.Uuid
+  userId              String             @unique @db.Uuid
+  phone               String
+  barCouncilNumber    String             @unique
+  city                String
+  state               String
+  referralInformation String?
+  bio                 String?
+  yearsExperience     Int                @default(0)
+  experienceSummary   String?
+  verificationStatus  VerificationStatus @default(PENDING)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qualifications  Qualification[]
+  specializations Specialization[]
+
+  @@map("advocate_profiles")
+}
+
+model Qualification {
+  id            String @id @default(uuid()) @db.Uuid
+  advocateId    String @db.Uuid
+  qualification String
+  institution   String
+  yearCompleted Int
+
+  advocate AdvocateProfile @relation(fields: [advocateId], references: [id], onDelete: Cascade)
+
+  @@map("qualifications")
+}
+
+model Specialization {
+  id        String            @id @default(uuid()) @db.Uuid
+  name      String            @unique
+  advocates AdvocateProfile[]
+
+  @@map("specializations")
 }
