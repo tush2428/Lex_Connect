@@ -13,6 +13,20 @@ enum UserRole {
   ADMIN
 }
 
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  UNDER_REVIEW
+  CLOSED
+  REJECTED
+}
+
+enum AccessLevel {
+  VIEW
+  EDIT
+  OWNER
+}
+
 model User {
   id              String           @id @default(uuid()) @db.Uuid
   name            String
@@ -24,9 +38,87 @@ model User {
   updatedAt       DateTime         @updatedAt
   advocateProfile AdvocateProfile?
 
+  // BE-04 back-relations
+  casesAsClient   Case[]          @relation("ClientCases")
+  casesAsAdvocate Case[]          @relation("AdvocateCases")
+  documents       Document[]
+  accessGrants    CaseAccess[]
+  statusChanges   CaseStatusLog[]
+
   @@map("users")
 }
 
+model Case {
+  id          String     @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  status      CaseStatus @default(OPEN)
+  clientId    String     @db.Uuid
+  advocateId  String?    @db.Uuid
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  client     User            @relation("ClientCases", fields: [clientId], references: [id])
+  advocate   User?           @relation("AdvocateCases", fields: [advocateId], references: [id])
+  documents  Document[]
+  statusLogs CaseStatusLog[]
+  access     CaseAccess[]
+
+  @@index([clientId])
+  @@index([advocateId])
+  @@index([status])
+  @@map("cases")
+}
+
+model CaseStatusLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  caseId     String      @db.Uuid
+  fromStatus CaseStatus?
+  toStatus   CaseStatus
+  changedBy  String      @db.Uuid
+  note       String?
+  createdAt  DateTime    @default(now())
+
+  case    Case @relation(fields: [caseId], references: [id])
+  changer User @relation(fields: [changedBy], references: [id])
+
+  @@index([caseId])
+  @@index([changedBy])
+  @@map("case_status_logs")
+}
+
+model Document {
+  id         String   @id @default(uuid()) @db.Uuid
+  caseId     String   @db.Uuid
+  uploadedBy String   @db.Uuid
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  s3Key      String   @unique
+  checksum   String?
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  case     Case @relation(fields: [caseId], references: [id])
+  uploader User @relation(fields: [uploadedBy], references: [id])
+
+  @@index([caseId])
+  @@map("documents")
+}
+
+model CaseAccess {
+  id        String      @id @default(uuid()) @db.Uuid
+  caseId    String      @db.Uuid
+  userId    String      @db.Uuid
+  level     AccessLevel
+  grantedAt DateTime    @default(now())
+
+  case Case @relation(fields: [caseId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([caseId, userId])
+  @@map("case_access")
+}
 enum VerificationStatus {
   PENDING
   VERIFIED
