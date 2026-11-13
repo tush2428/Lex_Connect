@@ -28,21 +28,25 @@ enum AccessLevel {
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  email     String   @unique
-  password  String
-  role      UserRole @default(CLIENT)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  email           String   @unique
+  password        String
+  role            UserRole @default(CLIENT)
+  isActive        Boolean  @default(true)
+  isEmailVerified Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  // BE-04 back-relations
+  // BE-04 relationships
   casesAsClient   Case[]          @relation("ClientCases")
   casesAsAdvocate Case[]          @relation("AdvocateCases")
   documents       Document[]
   accessGrants    CaseAccess[]
   statusChanges   CaseStatusLog[]
+
+  // BE-01 email OTP verification
+  emailVerificationOtp EmailVerificationOtp?
 
   @@map("users")
 }
@@ -117,4 +121,17 @@ model CaseAccess {
 
   @@unique([caseId, userId])
   @@map("case_access")
+}
+
+model EmailVerificationOtp {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  otpHash   String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_otps")
 }
